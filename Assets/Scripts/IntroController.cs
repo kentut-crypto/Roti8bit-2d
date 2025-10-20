@@ -20,14 +20,17 @@ public class IntroController : MonoBehaviour
     [Header("Audio Settings")]
     public AudioSource typingAudioSource; // Assign an AudioSource component
 
-    // The four paragraphs for your intro
-    private string[] introParagraphs = new string[]
+	private bool skipRequested = false;
+
+	// The four paragraphs for your intro
+	private string[] introParagraphs = new string[]
     {
-        "In the midst of a bustling city that never sleeps, you—the son of a traditional woodcutter—receive your father's last will and testament. In the letter, he asks you to continue the family business that has been passed down through generations to protect and utilize the forest wisely.",
-        "So you set off for a remote forest, where your father used to live and work. However, when you arrive there, you are faced with a harsh reality: ancient trees towering high, ready to be cut down for great profit—but each tree has its own impact on the ecosystem.",
-        "You only have 1 minute to cut it down. But every choice you make will shape the fate of this forest. Will you choose quick profit, or maintain the fragile balance of nature?",
-        "This forest is on the brink of its fate. Only you can decide: destruction... or life."
-    };
+		"In a small town filled with the aroma of freshly baked bread, you—an ordinary traveler—find yourself wandering the streets with an empty stomach and no money in your pocket. The sun is setting, your stomach growls louder with every step, and the only thing on your mind is one simple wish: to eat some bread.",
+		"Then, you stumble upon a cozy little bakery called Roti 8 Bit, famous for its warm loaves and pixel-perfect patterns. The baker isn’t around—but the shelves are full, and time is ticking. You realize this might be your only chance to finally satisfy your hunger.",
+		"You have only one minute to grab and eat as much bread as you can. Every loaf brings you closer to fullness—but be careful. Some breads are fresh and delicious, while others are burnt, moldy, or might slow you down.",
+		"Every choice counts. Will you eat wisely and fill your stomach before time runs out? Or will your hunger get the best of you?",
+		"The clock is ticking. The smell of bread fills the air. And only you can decide: starvation… or satisfaction."
+	};
 
     void Start()
     {
@@ -36,7 +39,16 @@ public class IntroController : MonoBehaviour
         StartCoroutine(PlayIntroSequence());
     }
 
-    IEnumerator PlayIntroSequence()
+	void Update()
+	{
+        // check input spasi
+		if (Input.GetKeyDown(KeyCode.Space))
+		{
+			skipRequested = true;
+		}
+	}
+
+	IEnumerator PlayIntroSequence()
     {
         // Loop through each paragraph
         foreach (string paragraph in introParagraphs)
@@ -44,12 +56,22 @@ public class IntroController : MonoBehaviour
             // Call the typing coroutine for the current paragraph
             yield return StartCoroutine(TypeText(paragraph));
 
-            // Wait for a moment before starting the next paragraph
-            yield return new WaitForSeconds(timeAfterParagraph);
+            // check tiap frame
+			float waitTimer = 0f;
+			while (waitTimer < timeAfterParagraph)
+            {
+				if (skipRequested)
+				{
+					skipRequested = false;
+					break;
+				}
+				waitTimer += Time.deltaTime;
+				yield return null;
+			}
 
-            // Clear the text for the next paragraph
-            introText.text = "";
-        }
+			introText.text = "";
+			skipRequested = false;
+		}
 
         // After the last paragraph, load the main game
         SceneManager.LoadScene(mainGameSceneName);
@@ -62,7 +84,17 @@ public class IntroController : MonoBehaviour
 
         while (i < textToType.Length)
         {
-            // Add one character to the text component
+            if (skipRequested)
+            {
+				introText.text = textToType; // langsung show
+				skipRequested = false;
+				if (typingAudioSource != null)
+                {
+					typingAudioSource.Stop();
+				}
+                break;
+			}
+
             introText.text += textToType[i];
             i++;
 
