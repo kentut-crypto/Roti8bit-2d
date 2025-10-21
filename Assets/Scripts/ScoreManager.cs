@@ -12,7 +12,7 @@ public class ScoreManager : MonoBehaviour
 
     // --- Timer Variables (Existing) ---
     public Text timerTextElement;
-    public float timeRemaining = 60f;
+    public float timeRemaining = 10f;
     public bool timerIsRunning = false;
 
     private void Awake()

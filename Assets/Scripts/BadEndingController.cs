@@ -2,82 +2,123 @@ using UnityEngine;
 using UnityEngine.UI;         // Required for UI Image
 using UnityEngine.SceneManagement; // Required for scene management
 using System.Collections;     // Required for Coroutines
+using TMPro;
 
 public class BadEndingSceneController : MonoBehaviour
 {
-    [Header("Fade Settings")]
-    [Tooltip("The UI Image to use for fading. It should cover the screen.")]
-    public Image fadePanel;
-    [Tooltip("How long the fade-in effect should take in seconds.")]
-    public float fadeInDuration = 1.5f;
-    [Tooltip("How long the fade-out effect should take in seconds.")]
-    public float fadeOutDuration = 1.5f;
-    [Tooltip("How long to wait (in seconds) after fade-in before starting fade-out.")]
-    public float waitDuration = 2.0f;
+	[Header("Fade Settings")]
+	public Image fadePanel;
+	public float fadeInDuration = 1.5f;
+	public float fadeToBlackDuration = 1f;
+	public float cinematicDuration = 2.0f;
+	public float fadeOutDuration = 1.5f;
 
-    [Header("Scene Transition")]
-    [Tooltip("The build index of the scene to load after fade-out (e.g., 0 for Main Menu).")]
-    public int sceneIndexToLoad = 0;
+	[Header("Score Display UI")]
+	public TextMeshProUGUI finalScoreText;
+	public TextMeshProUGUI highscoreMessageText;
 
-    void Start()
-    {
-        if (fadePanel == null)
-        {
-            Debug.LogError("BadEndingSceneController: Fade Panel is not assigned in the Inspector!");
-            // Optionally, try to find it if not assigned, or disable the script
-            // For simplicity, we'll just log an error. The scene won't fade correctly.
-            enabled = false;
-            return;
-        }
+	[Header("Background Elements")]
+	[Tooltip("The parent object containing the Map, Water, and all visual scene elements.")]
+	public GameObject sceneBackgroundParent;
 
-        // Ensure Time.timeScale is 1 when this scene starts, in case it was set to 0 previously.
-        if (Time.timeScale != 1f)
-        {
-            Time.timeScale = 1f;
-            Debug.Log("BadEndingSceneController: Time.timeScale was not 1, resetting to 1.");
-        }
+	[Header("Scene Transition")]
+	public int sceneIndexToLoad = 0;
 
-        // Start the sequence
-        StartCoroutine(SceneSequenceCoroutine());
-    }
+	void Start()
+	{
+		if (fadePanel == null)
+		{
+			Debug.LogError("BadEndingSceneController: Fade Panel is not assigned in the Inspector!");
+			// Optionally, try to find it if not assigned, or disable the script
+			// For simplicity, we'll just log an error. The scene won't fade correctly.
+			enabled = false;
+			return;
+		}
 
-    IEnumerator SceneSequenceCoroutine()
-    {
-        // 1. Start with the panel fully opaque (if it's not already, e.g., from a previous scene's fade-out)
-        //    and then fade it in (alpha from 1 to 0).
-        fadePanel.gameObject.SetActive(true);
-        yield return StartCoroutine(Fade(1f, 0f, fadeInDuration)); // Fade In
+		// Ensure Time.timeScale is 1 when this scene starts, in case it was set to 0 previously.
+		if (Time.timeScale != 1f)
+		{
+			Time.timeScale = 1f;
+			Debug.Log("BadEndingSceneController: Time.timeScale was not 1, resetting to 1.");
+		}
 
-        // 2. Wait for the specified duration
-        Debug.Log($"BadEndingSceneController: Fade-in complete. Waiting for {waitDuration} seconds.");
-        yield return new WaitForSeconds(waitDuration);
+		SetScoreUIActive(false);
+		SetBackgroundActive(true);
 
-        // 3. Fade out (alpha from 0 to 1)
-        Debug.Log("BadEndingSceneController: Wait complete. Starting fade-out.");
-        yield return StartCoroutine(Fade(0f, 1f, fadeOutDuration)); // Fade Out
+		// Start the sequence
+		StartCoroutine(SceneSequenceCoroutine());
+	}
 
-        // 4. Load the next scene
-        Debug.Log($"BadEndingSceneController: Fade-out complete. Loading scene with build index {sceneIndexToLoad}.");
-        SceneManager.LoadScene(sceneIndexToLoad);
-    }
+	void SetBackgroundActive(bool active)
+	{
+		if (sceneBackgroundParent != null)
+		{
+			sceneBackgroundParent.SetActive(active);
+		}
+	}
 
-    IEnumerator Fade(float startAlpha, float endAlpha, float duration)
-    {
-        float elapsedTime = 0f;
-        Color panelColor = fadePanel.color; // Get the base color (e.g., black)
+	void SetScoreUIActive(bool active)
+	{
+		if (finalScoreText != null) finalScoreText.gameObject.SetActive(active);
+		if (highscoreMessageText != null) highscoreMessageText.gameObject.SetActive(active);
+	}
 
-        // Ensure the panel starts at the correct alpha
-        fadePanel.color = new Color(panelColor.r, panelColor.g, panelColor.b, startAlpha);
+	void DisplayFinalScore()
+	{
+		if (finalScoreText != null)
+		{
+			finalScoreText.text = $"Final Score: {GameDataTransfer.FinalScore}";
+		}
+		if (highscoreMessageText != null)
+		{
+			string message = GameDataTransfer.IsNewHighscore
+				? "NEW HIGH RECORD!"
+				: $"High Score: {GameDataTransfer.HighScore}";
+			highscoreMessageText.text = message;
+		}
+	}
 
-        while (elapsedTime < duration)
-        {
-            elapsedTime += Time.deltaTime; // Use unscaled time if you want fade during Time.timeScale = 0, but usually not needed here
-            float newAlpha = Mathf.Lerp(startAlpha, endAlpha, elapsedTime / duration);
-            fadePanel.color = new Color(panelColor.r, panelColor.g, panelColor.b, newAlpha);
-            yield return null; // Wait for the next frame
-        }
+	IEnumerator SceneSequenceCoroutine()
+	{
+		// Start with the panel fully opaque (if it's not already, e.g., from a previous scene's fade-out)
+		//    and then fade it in (alpha from 1 to 0).
+		fadePanel.gameObject.SetActive(true);
+		Color baseColor = fadePanel.color;
+		yield return StartCoroutine(Fade(1f, 0f, fadeInDuration, baseColor)); // Fade In
 
-        // Ensure the panel is exactly at the endAlpha
-        fadePanel.color = new Color(panelColor.r, panelColor.g, panelColor.b, endAlpha);
-    }
+		//  Wait for the specified duration
+		yield return new WaitForSeconds(cinematicDuration);
+
+
+		// fade to black screen
+		yield return StartCoroutine(Fade(0f, 1f, fadeToBlackDuration, baseColor));
+
+		// remove bg and display score
+		SetBackgroundActive(false);
+		DisplayFinalScore();
+		SetScoreUIActive(true);
+		Debug.Log("Scores displayed. Waiting for Spacebar input...");
+
+		// wait until input
+		yield return new WaitUntil(() => Input.GetKeyDown(KeyCode.Space));
+
+		SetScoreUIActive(false);
+		SceneManager.LoadScene(sceneIndexToLoad);
+	}
+
+	IEnumerator Fade(float startAlpha, float endAlpha, float duration, Color color)
+	{
+		float elapsedTime = 0f;
+
+		fadePanel.color = new Color(color.r, color.g, color.b, startAlpha);
+
+		while (elapsedTime < duration)
+		{
+			elapsedTime += Time.deltaTime;
+			float newAlpha = Mathf.Lerp(startAlpha, endAlpha, elapsedTime / duration);
+			fadePanel.color = new Color(color.r, color.g, color.b, newAlpha);
+			yield return null;
+		}
+		fadePanel.color = new Color(color.r, color.g, color.b, endAlpha);
+	}
 }
