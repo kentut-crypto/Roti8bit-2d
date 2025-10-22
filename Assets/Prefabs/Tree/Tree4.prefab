@@ -210,6 +210,10 @@ MonoBehaviour:
   damagePerHit: 10
   pointsForCutting: 2
   healthBarSlider: {fileID: 0}
+  hitSound: {fileID: 8300000, guid: 6d9749b575b182842b6cf407022f7887, type: 3}
+  hitVolume: 0.5
+  munchSound: {fileID: 8300000, guid: 48406bc02b4a914439c8b349c3164288, type: 3}
+  munchVolume: 1.25
 --- !u!58 &7746092924258508945
 CircleCollider2D:
   m_ObjectHideFlags: 0

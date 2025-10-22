@@ -281,7 +281,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 3
-  m_Sprite: {fileID: 5833258662840273901, guid: cdf9ef6522f64174692394345b147d3e, type: 3}
+  m_Sprite: {fileID: 5767540062556068418, guid: 09146c407c024634b8cb88e880c4d82f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -390,6 +390,10 @@ MonoBehaviour:
   damagePerHit: 10
   pointsForCutting: 2
   healthBarSlider: {fileID: 0}
+  hitSound: {fileID: 8300000, guid: 6d9749b575b182842b6cf407022f7887, type: 3}
+  hitVolume: 0.5
+  munchSound: {fileID: 8300000, guid: 48406bc02b4a914439c8b349c3164288, type: 3}
+  munchVolume: 1.25
 --- !u!95 &7144548106368593653
 Animator:
   serializedVersion: 7

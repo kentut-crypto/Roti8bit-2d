@@ -92,8 +92,8 @@ public class GameEndManager : MonoBehaviour
 			finalScore = scoreManagerInstance.currentScore;
 
 			targetSceneIndex = (finalScore > scoreThresholdForGoodEnding)
-				? goodEndingSceneIndex
-				: badEndingSceneIndex;
+				? badEndingSceneIndex
+				: goodEndingSceneIndex;
 
 			ProcessScoreAndTransition();
 		}

@@ -567,6 +567,10 @@ MonoBehaviour:
   damagePerHit: 10
   pointsForCutting: 1
   healthBarSlider: {fileID: 6130609691240352007}
+  hitSound: {fileID: 8300000, guid: 6d9749b575b182842b6cf407022f7887, type: 3}
+  hitVolume: 0.5
+  munchSound: {fileID: 8300000, guid: 48406bc02b4a914439c8b349c3164288, type: 3}
+  munchVolume: 1.25
 --- !u!114 &6640943202527009248
 MonoBehaviour:
   m_ObjectHideFlags: 0

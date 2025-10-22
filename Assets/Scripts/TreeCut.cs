@@ -15,7 +15,15 @@ public class TreeCut : Tool
     // but we no longer need to drag anything into it manually.
     public Slider healthBarSlider;
 
-    private int maxHealth;
+	[Header("Audio Effects")]
+	[SerializeField] private AudioClip hitSound;
+	[SerializeField] private float hitVolume = 0.5f;
+	[SerializeField] private AudioClip munchSound;
+	[SerializeField] private float munchVolume = 1.25f;
+
+	private AudioSource audioSource;
+
+	private int maxHealth;
 
     private void Awake()
     {
@@ -28,11 +36,17 @@ public class TreeCut : Tool
         {
             Debug.LogError(gameObject.name + " could not find a Slider in its children! Make sure the health bar is part of the prefab.");
         }
-        // --- END OF NEW CODE ---
+		// --- END OF NEW CODE ---
 
+		audioSource = GetComponent<AudioSource>();
+		if (audioSource == null)
+		{
+			audioSource = gameObject.AddComponent<AudioSource>();
+		}
+		audioSource.playOnAwake = false;
 
-        // Store the maximum health so we can calculate the fill percentage later
-        maxHealth = treeHealth;
+		// Store the maximum health so we can calculate the fill percentage later
+		maxHealth = treeHealth;
 
         // You can now safely hide the health bar here if you want.
         healthBarSlider.gameObject.SetActive(false);
@@ -40,10 +54,15 @@ public class TreeCut : Tool
 
     public override void Hit()
     {
-        // Now that the slider is found automatically in Awake,
-        // this Hit() function will work perfectly without any changes.
+		if (hitSound != null && audioSource != null)
+		{
+			audioSource.PlayOneShot(hitSound, hitVolume);
+		}
 
-        if (healthBarSlider != null && !healthBarSlider.gameObject.activeInHierarchy)
+		// Now that the slider is found automatically in Awake,
+		// this Hit() function will work perfectly without any changes.
+
+		if (healthBarSlider != null && !healthBarSlider.gameObject.activeInHierarchy)
         {
             healthBarSlider.gameObject.SetActive(true);
         }
@@ -63,7 +82,13 @@ public class TreeCut : Tool
             {
                 ScoreManager.Instance.AddScore(pointsForCutting);
             }
-            Destroy(gameObject);
+
+			if (munchSound != null)
+			{
+				AudioSource.PlayClipAtPoint(munchSound, transform.position, munchVolume);
+			}
+
+			Destroy(gameObject);
         }
     }
 }
